@@ -5,16 +5,20 @@ from parser import get_random_cars
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime, timedelta
 from db import init_db
+import pytz
 
-# вставь сюда токен своего бота
+
 TOKEN = "7644070125:AAEoq74URgg-zXfIH5vSVBRxPZxUlj0ugfo"
 CHAT_ID = -1002898879716
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
-scheduler = AsyncIOScheduler()
 
-time_send = ["08:00","10:00", "12:00", "14:00","16:00","18:00","20:00"]
+
+moscow_tz = pytz.timezone("Europe/Moscow")
+scheduler = AsyncIOScheduler(timezone=moscow_tz)
+
+time_send = ["08:00","10:00","12:00","14:00","16:00","18:00","20:00"]
 
 @dp.message(Command("start"))
 async def start(message: types.Message):
@@ -22,7 +26,7 @@ async def start(message: types.Message):
 
 @dp.message(Command("next"))
 async def next_time(message: types.Message):
-    now = datetime.now()
+    now = datetime.now(moscow_tz)
     today_times = []
 
     for t in time_send:
@@ -33,19 +37,15 @@ async def next_time(message: types.Message):
         today_times.append(candidate)
 
     nearest = min(today_times)
-    await message.answer(f"⏳ Следующая рассылка в {nearest.strftime('%d.%m %H:%M')}")
+    await message.answer(f"⏳ Следующая рассылка в {nearest.strftime('%d.%m %H:%M')} (МСК)")
 
 
-# 📌 функция отправки объявления
 async def send_ad():
     cars = get_random_cars(count=1)
     if not cars:
-        await bot.send_message(chat_id=CHAT_ID, text="⚠️ Объявлений не найдено.")
         return
 
     car = cars[0]
-
-    # текст, который будет в описании первой фотки
     caption = f"""
 🚗 {car['title']}
 💵 {car['price']}
@@ -69,15 +69,14 @@ async def send_ad():
         await bot.send_message(chat_id=CHAT_ID, text=caption.strip(), parse_mode="HTML")
 
 
-
-
 async def main():
-    # добавляем задачи из списка
     for t in time_send:
         h, m = map(int, t.split(":"))
-        scheduler.add_job(send_ad, "cron", hour=h, minute=m, name=f"Рассылка {t}")
+        scheduler.add_job(send_ad, "cron", hour=h, minute=m, name=f"Рассылка {t}", timezone=moscow_tz)
+
     init_db()
     scheduler.start()
+    print("✅ Планировщик запущен по московскому времени")
     await dp.start_polling(bot)
 
 
