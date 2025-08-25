@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from db import init_db
 
 # вставь сюда токен своего бота
-TOKEN = "8297741936:AAEqEW0tWBeq7HnbMfNuOnjABQ494sySszM"
+TOKEN = "7644070125:AAEoq74URgg-zXfIH5vSVBRxPZxUlj0ugfo"
 CHAT_ID = -1002898879716
 
 bot = Bot(token=TOKEN)
