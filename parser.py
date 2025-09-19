@@ -34,8 +34,8 @@ def get_random_cars(min_price=500, max_price=3000, count=1, max_photos=10, max_p
 
             title = title_tag.text.strip() if title_tag else "Без названия"
 
-            price = random_item.find("div", class_="listing-item__priceusd")
-            price_text = price.text.strip() if price else "Нет цены"
+            price = random_item.find("div", class_="listing-item__price-secondary")
+            price_text = price.text.strip().replace("≈", "") if price else "Нет цены"
 
             location = random_item.find("div", class_="listing-item__location")
             location_text = location.text.strip() if location else "Неизвестно"
